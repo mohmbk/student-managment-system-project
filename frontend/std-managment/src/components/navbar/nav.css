@@ -1,0 +1,32 @@
+.navbar{
+    height: 10vh;
+    width: 100%;
+    background-color: red;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+}
+
+.routes {
+    width: 50%;
+    height: 100%;
+    background-color: rgb(0, 224, 249);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    
+}
+
+.item{
+    list-style: none;
+    text-decoration: none;
+    color: black;
+    font-size: larger
+    
+}
+
+
+
