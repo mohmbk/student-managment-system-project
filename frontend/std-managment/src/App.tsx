@@ -14,13 +14,15 @@ function App() {
   return (
     <>
       <Router>
-        <Nav />
-        <Routes>
-          <Route path="/students" element={<Students />} />
-          <Route path="/students/:id" element={<StudentDetail />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/enroll" element={<Enrollment/>} />
-        </Routes>
+        <Nav/>
+        <div className="content"> 
+          <Routes>
+            <Route path="/students" element={<Students />} />
+            <Route path="/students/:id" element={<StudentDetail />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/enroll" element={<Enrollment/>} />
+          </Routes>
+        </div>
     </Router>
     </>
   )

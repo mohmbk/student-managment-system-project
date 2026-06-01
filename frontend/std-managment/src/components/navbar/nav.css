@@ -1,12 +1,15 @@
-.navbar{
+.navbar {
     height: 10vh;
     width: 100%;
-    background-color: red;
+    background-color: red; 
     display: flex;
     flex-direction: row;
     justify-content: space-around;
     align-items: center;
     position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999; 
 }
 
 .routes {

@@ -1,0 +1,46 @@
+.students{
+   background-color: rgb(142, 178, 32);
+}
+
+.std{
+    height: 30px;
+    width: 90%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    margin: auto;
+    border: 1px solid black;
+    
+    
+}
+
+.info{
+    height: 100%;
+    width: 50%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    background-color: red;
+}
+
+.stdbtndiv{
+    height: 100%;
+    
+    width: 30%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    
+    
+}
+
+.stdbtn{
+    height: 95%;
+    width: 40%;
+    border-radius: 10px;
+    background-color: blue;
+
+}
