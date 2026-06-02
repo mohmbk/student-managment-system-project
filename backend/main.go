@@ -24,6 +24,14 @@ type enroll struct {
 	courseid int `json:"courseid" bson:"courseid"`
 }
 
+
+type StudentDetail struct {
+    ID      int      `json:"id"`
+    Name    string   `json:"name"`
+    Age     int      `json:"age"`
+    Courses []string `json:"courses"`
+}
+
 func createstd(w http.ResponseWriter , r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w , "Method not allowed" , http.StatusMethodNotAllowed)
@@ -85,6 +93,86 @@ func enableCORS(next http.HandlerFunc) http.HandlerFunc {
     }
 }
 
+func deleteStudent(w http.ResponseWriter , r *http.Request) {
+	if r.Method != "DELETE" {
+		http.Error(w , "Method not allowed" , http.StatusMethodNotAllowed)
+		return ;
+	}
+	idStr := strings.TrimPrefix(r.URL.Path, "/Students/");
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w , "Invalid student ID" , http.StatusBadRequest)
+		return ;
+	}
+	result , err := stdcollection.DeleteOne(context.Background() , bson.M{"id": id});
+	if err != nil {
+		http.Error(w , "Error deleting student" , http.StatusInternalServerError)
+		return ;
+	}
+	if result.DeletedCount == 0 {
+		http.Error(w , "Student not found" , http.StatusNotFound)
+		return ;
+	}
+
+}
+
+
+func getStudentDetails(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w , "method not allowed" , http.StatusMethodNotAllowed)
+		return ;
+	}
+	
+	idStr := strings.TrimPrefix(r.URL.Path, "/StudentDetail/")
+    id, err := strconv.Atoi(idStr)
+    if err != nil {
+        http.Error(w, "invalid id", http.StatusBadRequest)
+        return
+    }
+	
+	
+	var studentDetails StudentDetail ;
+	var student std ;
+	err := stdcollection.FindOne(context.Background() , bson.M{"id": id}).Decode(&student);
+	if err != nil {
+		http.Error(w , "student not found" , http.StatusNotFound)
+		return ;
+	}
+	cursor , err := enrollcollection.Find(context.Background() , bson.M{"stdid": id});
+	if err != nil {
+		http.Error(w , "error fetching enrollments" , http.StatusInternalServerError)
+		return ;
+	}
+	defer cursor.Close(context.Background());
+	var coursenames []string ;
+	for cursor.Next(context.Background()) {
+		var enrollment enroll ;
+		err := cursor.Decode(&enrollment);
+		if err != nil {
+			http.Error(w , "error decoding enrollment data" , http.StatusInternalServerError)
+			return ;
+		}
+		var course course ;
+		err = courscollection.FindOne(context.Background() , bson.M{"id": enrollment.courseid}).Decode(&course);
+		if err != nil {
+			http.Error(w , "error fetching course data" , http.StatusInternalServerError)
+			return ;
+		}
+		coursenames = append(coursenames , course.Name);
+	}
+	
+
+	studentDetails.ID = student.ID ;
+	studentDetails.Name = student.Name;
+	studentDetails.Age = student.Age ;
+	studentDetails.Courses = coursenames ;
+	w.Header().Set("Content-Type" , "application/json");
+	json.NewEncoder(w).Encode(studentDetails);
+}
+
+
+
+
 func main() {
 	ctx , cancel := context.WithTimeout(context.Background() , 10*time.Second);
 	defer cancel();
@@ -112,8 +200,10 @@ func main() {
     	fmt.Println("Student already exists, skipping...")
 	}	
 
-
+	
 	http.HandleFunc("/students", enableCORS(getstd));
+	http.HandleFunc("/students/", enableCORS(deleteStudent));
+	http.HandleFunc("/StudentDetail/", enableCORS(getStudentDetails));
 
 	fmt.Println("Server running on http://localhost:8080");
 	 http.ListenAndServe(":8080", nil);

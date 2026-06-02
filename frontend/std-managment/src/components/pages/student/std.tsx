@@ -1,5 +1,6 @@
 import './std.css'
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Student {
     id: number;
@@ -21,6 +22,25 @@ function Students() {
       .catch((err) => console.error(err));
   }, []);
 
+  async function deletestd( id : number){
+      try {
+        const res = await fetch(`http://localhost:8080/students/${id}` , {
+          method : "DELETE",
+        });
+
+        if(!res.ok){
+          throw new Error("failed to delete the student");
+        }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const navigate = useNavigate();
+  async function veiwdetails(id : number) {
+    navigate(`/students/${id}`);
+  }
+
 return (
     <>
       <div className='students'>
@@ -33,8 +53,8 @@ return (
               </div>
 
               <div className='stdbtndiv'>
-                <button className='stdbtn'>delete</button>
-                <button className='stdbtn'>show details</button>
+                <button className='stdbtn'  onClick={() => deletestd(student.id)}>delete</button>
+                <button className='stdbtn' onClick={() => veiwdetails(student.id)}>show details</button>
               </div>
           </div>
         ))}
