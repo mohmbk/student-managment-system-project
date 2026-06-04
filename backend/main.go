@@ -1,7 +1,7 @@
 package main 
 import ("fmt" ; "net/http" ; "encoding/json" ; "time" ; "context" ; "go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options" ;  )
+	"go.mongodb.org/mongo-driver/mongo/options" ; "strings" ; "strconv")
 
 var client *mongo.Client
 var stdcollection *mongo.Collection
@@ -20,8 +20,8 @@ type course struct {
 }
 
 type enroll struct {
-	stdid int `json:"stdid" bson:"stdid"`
-	courseid int `json:"courseid" bson:"courseid"`
+    StdID    int `json:"stdid" bson:"stdid"`
+    CourseID int `json:"courseid" bson:"courseid"`
 }
 
 
@@ -133,7 +133,7 @@ func getStudentDetails(w http.ResponseWriter, r *http.Request) {
 	
 	var studentDetails StudentDetail ;
 	var student std ;
-	err := stdcollection.FindOne(context.Background() , bson.M{"id": id}).Decode(&student);
+	err = stdcollection.FindOne(context.Background() , bson.M{"id": id}).Decode(&student);
 	if err != nil {
 		http.Error(w , "student not found" , http.StatusNotFound)
 		return ;
@@ -153,7 +153,7 @@ func getStudentDetails(w http.ResponseWriter, r *http.Request) {
 			return ;
 		}
 		var course course ;
-		err = courscollection.FindOne(context.Background() , bson.M{"id": enrollment.courseid}).Decode(&course);
+		err = courscollection.FindOne(context.Background() , bson.M{"id": enrollment.CourseID}).Decode(&course);
 		if err != nil {
 			http.Error(w , "error fetching course data" , http.StatusInternalServerError)
 			return ;
@@ -161,7 +161,7 @@ func getStudentDetails(w http.ResponseWriter, r *http.Request) {
 		coursenames = append(coursenames , course.Name);
 	}
 	
-
+	
 	studentDetails.ID = student.ID ;
 	studentDetails.Name = student.Name;
 	studentDetails.Age = student.Age ;
@@ -200,6 +200,29 @@ func main() {
     	fmt.Println("Student already exists, skipping...")
 	}	
 
+	count , err = courscollection.CountDocuments(context.Background(), bson.M{"id": 1});
+	if count == 0 {
+			result , err := courscollection.InsertOne(context.Background() , course{ID: 1 , Name: "Math"});
+				if err != nil {
+					fmt.Println("error inserting course:", err)
+					return;
+				}
+				fmt.Println("Course inserted" , result.InsertedID);
+	}else{
+		fmt.Println("Course already exists, skipping...")
+	}
+		
+	count , err = enrollcollection.CountDocuments(context.Background(), bson.M{"stdid": 1});
+	if count == 0 {
+		result , err := enrollcollection.InsertOne(context.Background() , enroll{StdID: 1, CourseID: 1});
+				if err != nil {
+					fmt.Println("error inserting course:", err)
+					return ;
+				}	
+		fmt.Println("Enrollment inserted" , result.InsertedID);
+	}else{
+		fmt.Println("Enrollment already exists, skipping...")
+	}
 	
 	http.HandleFunc("/students", enableCORS(getstd));
 	http.HandleFunc("/students/", enableCORS(deleteStudent));
