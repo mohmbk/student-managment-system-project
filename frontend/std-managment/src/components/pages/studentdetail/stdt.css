@@ -1,3 +1,40 @@
 
 
+.container{
+    height: 90vh;
+    width: 100vw;
+    background-color: aqua;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
+.subcontainer{
+    height: 60%;
+    width: 60%;
+    background-color: red;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.stdinfo{
+    height: 90%;
+    width: 45%;
+    background-color: yellow;
+    text-align: center;
+}
+
+.imgdiv{
+    height: 90%;
+    width: 45%;
+}
+.img{
+    height: 100%;
+    width: 100%;
+}
+
+
+.tittle{
+    text-align: center;
+}

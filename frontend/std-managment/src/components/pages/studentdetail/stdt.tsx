@@ -22,12 +22,24 @@ function StudentDetail() {
   }, [id]);
   return (
     <>
-      <h3>{stdetail?.id}</h3>
-      <h3>{stdetail?.age}</h3>
-      <h3>{stdetail?.name}</h3>
-      {stdetail?.courses?.map((course, index) => (
-        <h3 key={index}>{course}</h3>
-      ))}
+      <div className='container'>
+        <div className='subcontainer'>
+          <div className='stdinfo'>
+            <h1>student info :</h1><br />
+            <h3>id : {stdetail?.id}</h3><br />
+            <h3>age : {stdetail?.age}</h3><br />
+            <h3>name : {stdetail?.name}</h3> <br /><br /><br />
+            <h1>course enrolled in :</h1><br />
+            {stdetail?.courses?.map((course, index) => (
+              <h3 key={index}>{course}</h3>
+            ))}
+          </div>
+
+          <div className='imgdiv'>
+            <img src="/cs img.jpg" alt="" className='img'/>
+          </div>
+        </div>
+      </div>
     </>
   )
 }

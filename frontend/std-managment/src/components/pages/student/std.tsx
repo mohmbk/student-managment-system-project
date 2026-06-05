@@ -41,6 +41,43 @@ function Students() {
     navigate(`/students/${id}`);
   }
 
+
+  const [id , setid] = useState("");
+  const [age , setage] = useState("");
+  const [name , setname] = useState("");
+
+  const createStudent = async( e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://localhost:8080/students" , {
+        method : "POST",
+        headers : {
+          "Content-Type" : "application/json",
+        },
+
+        body: JSON.stringify({
+            id: Number(id),
+            name: name,
+            age: Number(age),
+        }),
+      })
+
+      if(!response.ok){
+        alert(await response.text());
+        return ;
+      }
+
+      alert("student created");
+
+      setid("");
+      setname("");
+      setage("");
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+
 return (
     <>
       <div className='students'>
@@ -59,9 +96,23 @@ return (
           </div>
         ))}
       </div>
+        <br /><br />
+        <h1 className='tittle'>create a student</h1>
+      <section className='create'>
+        <form className='inputdiv'>
+          <div className='inp1'>
+            <input type="text" placeholder=' id :' name='id' id='id' className='input' onChange={(e) => setid(e.target.value)}/>
+            <input type="text" name='name' id='name' placeholder=' name :' className='input' onChange={(e) => setname(e.target.value)}/>
+          </div>
+          
+          
+          <div className='inp2'>
+            
+            <input type="text" name='age' id='age' placeholder=' age :' className='input' onChange={(e) => setage(e.target.value)}/>
+          </div>
 
-      <section className=''>
-
+          <input type="button" value="create !!" className='createinp' onClick={createStudent}/>
+        </form>
       </section>
       
     </>

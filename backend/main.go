@@ -32,6 +32,20 @@ type StudentDetail struct {
     Courses []string `json:"courses"`
 }
 
+
+func studentsHandler(w http.ResponseWriter, r *http.Request) {
+    switch r.Method {
+    case "GET":
+        getstd(w, r)
+    case "POST":
+        createstd(w, r)
+    case "OPTIONS":
+        w.WriteHeader(http.StatusOK) // ✅ let CORS preflight pass
+    default:
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+    }
+}
+
 func createstd(w http.ResponseWriter , r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w , "Method not allowed" , http.StatusMethodNotAllowed)
@@ -41,6 +55,16 @@ func createstd(w http.ResponseWriter , r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&newstd);
 	if err != nil {
 		http.Error(w , "Invalid request body" , http.StatusBadRequest)
+		return ;
+	}
+	count , err := stdcollection.CountDocuments(context.Background() , bson.M{"id": newstd.ID});
+	if err != nil {
+		http.Error(w , "Error checking for existing student" , http.StatusInternalServerError)
+		return ;
+	}
+
+	if count != 0 {
+		http.Error(w , "Student with this ID already exists" , http.StatusBadRequest)
 		return ;
 	}
 	
@@ -98,7 +122,7 @@ func deleteStudent(w http.ResponseWriter , r *http.Request) {
 		http.Error(w , "Method not allowed" , http.StatusMethodNotAllowed)
 		return ;
 	}
-	idStr := strings.TrimPrefix(r.URL.Path, "/Students/");
+	idStr := strings.TrimPrefix(r.URL.Path, "/students/");
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w , "Invalid student ID" , http.StatusBadRequest)
@@ -224,7 +248,7 @@ func main() {
 		fmt.Println("Enrollment already exists, skipping...")
 	}
 	
-	http.HandleFunc("/students", enableCORS(getstd));
+	http.HandleFunc("/students", enableCORS(studentsHandler));
 	http.HandleFunc("/students/", enableCORS(deleteStudent));
 	http.HandleFunc("/StudentDetail/", enableCORS(getStudentDetails));
 
