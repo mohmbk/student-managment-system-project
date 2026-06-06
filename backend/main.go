@@ -32,6 +32,11 @@ type StudentDetail struct {
     Courses []string `json:"courses"`
 }
 
+type enrollmentRequest struct {
+    StdName    string `json:"stdname"`
+    CourseName string `json:"coursename"`
+}
+
 
 func studentsHandler(w http.ResponseWriter, r *http.Request) {
     switch r.Method {
@@ -194,6 +199,71 @@ func getStudentDetails(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(studentDetails);
 }
 
+func getcourse(w http.ResponseWriter , r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w , "Method not allowed" , http.StatusMethodNotAllowed)
+		return ;
+	}
+	cursor , err := courscollection.Find(context.Background() , bson.M{});
+	if err != nil {
+		http.Error(w , "Error fetching courses" , http.StatusInternalServerError)
+		return ;
+	}
+	var courses []course ;
+	for cursor.Next(context.Background()) {
+		var course course ;
+		err := cursor.Decode(&course);
+		if err != nil {
+			http.Error(w , "Error decoding course data" , http.StatusInternalServerError)
+			return ;
+		}
+		courses = append(courses , course);
+	}
+	cursor.Close(context.Background());
+	w.Header().Set("Content-Type" , "application/json");
+	json.NewEncoder(w).Encode(courses);
+}
+
+func getenroll(w http.ResponseWriter , r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w , "Method not allowed" , http.StatusMethodNotAllowed)
+		return ;
+	}
+	cursor , err := enrollcollection.Find(context.Background() , bson.M{});
+	if err != nil {
+		http.Error(w , "Error fetching enrollments" , http.StatusInternalServerError)
+		return ;
+	}
+	var enrollments []enrollmentRequest ;
+	for cursor.Next(context.Background()) {
+		var enrollment enroll ;
+		err := cursor.Decode(&enrollment);
+		if err != nil {
+			http.Error(w , "Error decoding enrollment data" , http.StatusInternalServerError)
+			return ;
+		}
+		var student std ;
+		err = stdcollection.FindOne(context.Background() , bson.M{"id": enrollment.StdID}).Decode(&student);
+		if err != nil {
+			http.Error(w , "Error fetching student data" , http.StatusInternalServerError)
+			return ;
+		}
+		var course course ;
+		err = courscollection.FindOne(context.Background() , bson.M{"id": enrollment.CourseID}).Decode(&course);
+		if err != nil {
+			http.Error(w , "Error fetching course data" , http.StatusInternalServerError)
+			return ;
+		}
+		var enrollmentReq enrollmentRequest ;
+		enrollmentReq.StdName = student.Name ;
+		enrollmentReq.CourseName = course.Name ;
+		enrollments = append(enrollments , enrollmentReq);
+	}
+	cursor.Close(context.Background());
+	w.Header().Set("Content-Type" , "application/json");
+	json.NewEncoder(w).Encode(enrollments);
+}
+
 
 
 
@@ -248,6 +318,8 @@ func main() {
 		fmt.Println("Enrollment already exists, skipping...")
 	}
 	
+	http.HandleFunc("/enrollments", enableCORS(getenroll));
+	http.HandleFunc("/courses", enableCORS(getcourse));
 	http.HandleFunc("/students", enableCORS(studentsHandler));
 	http.HandleFunc("/students/", enableCORS(deleteStudent));
 	http.HandleFunc("/StudentDetail/", enableCORS(getStudentDetails));

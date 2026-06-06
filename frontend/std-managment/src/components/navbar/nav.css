@@ -1,7 +1,7 @@
 .navbar {
     height: 10vh;
     width: 100%;
-    background-color: red; 
+    background-color: red;
     display: flex;
     flex-direction: row;
     justify-content: space-around;
