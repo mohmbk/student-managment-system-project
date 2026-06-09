@@ -20,13 +20,30 @@ function Courses() {
       .catch((err) => console.error(err));
   }, []);
   
+
+  async function deleatecourse(id : Number) {
+    try {
+      const res = await fetch(`http://localhost:8080/courses/${id}` , {
+          method : "DELETE",
+        });
+
+        if(!res.ok){
+          throw new Error("failed to delete the course");
+        }
+      
+    } catch (error) {
+      console.log(error);
+    }
+  }
   return (
     <>
       <section>
         {courses.map((course) => (
-          <div key={course.id} className="course-item">
-            <h3>{course.name}</h3>
-            <h3>ID: {course.id}</h3>
+          <div key={course.id} className="courseitem">
+            
+              <h3>{course.name}</h3>
+              <h3>ID: {course.id}</h3>
+            <button className='coursedlt' onClick={() => deleatecourse(course.id)}>delete</button>
           </div>
         ))}
       </section>

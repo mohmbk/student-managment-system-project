@@ -1,0 +1,16 @@
+.enroll{
+    height: 30px;
+    background-color: aqua;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.enrdlt{
+    background-color: red;
+    height: 90%;
+    width: 10%;
+    border: none;
+    border-radius: 20px;
+}

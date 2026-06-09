@@ -33,6 +33,7 @@ type StudentDetail struct {
 }
 
 type enrollmentRequest struct {
+	StdID      int    `json:"stdid"`
     StdName    string `json:"stdname"`
     CourseName string `json:"coursename"`
 }
@@ -255,6 +256,7 @@ func getenroll(w http.ResponseWriter , r *http.Request) {
 			return ;
 		}
 		var enrollmentReq enrollmentRequest ;
+		enrollmentReq.StdID = student.ID ;
 		enrollmentReq.StdName = student.Name ;
 		enrollmentReq.CourseName = course.Name ;
 		enrollments = append(enrollments , enrollmentReq);
@@ -264,6 +266,62 @@ func getenroll(w http.ResponseWriter , r *http.Request) {
 	json.NewEncoder(w).Encode(enrollments);
 }
 
+
+func deleteCourse(w http.ResponseWriter , r *http.Request){
+	if r.Method != "DELETE" {
+		http.Error(w , "Method not allowed" , http.StatusMethodNotAllowed)
+		return ;
+	}
+	idStr := strings.TrimPrefix(r.URL.Path, "/courses/");
+	id, err := strconv.Atoi(idStr);
+	if err != nil {
+		http.Error(w , "Invalid course ID" , http.StatusBadRequest)
+		return ;
+	}
+
+	reslut , err := courscollection.DeleteOne(context.Background() , bson.M{"id": id});
+	if err != nil {
+		http.Error(w , "Error deleting course" , http.StatusInternalServerError)
+		return ;
+	}
+	if reslut.DeletedCount == 0 {
+		http.Error(w , "Course not found" , http.StatusNotFound)
+		return ;
+	}
+}
+
+
+func deleteEnrollment(w http.ResponseWriter , r *http.Request) {
+	if r.Method != "DELETE" {
+		http.Error(w , "Method not allowed" , http.StatusMethodNotAllowed)
+		return ;
+	}
+	path := strings.TrimPrefix(r.URL.Path, "/enrollments/");
+	parts := strings.Split(path, "/");
+	stdidstr := parts[0];
+	coursename := parts[1];
+	stdid , err := strconv.Atoi(idstr);
+	if err != nil {
+		http.Error(w , "Invalid student ID" , http.StatusBadRequest)
+		return ;
+	}
+	var course course ;
+	err = courscollection.FindOne(context.Background() , bson.M{"name": coursename}).Decode(&course);
+	if err != nil {
+		http.Error(w , "Course not found" , http.StatusNotFound)
+		return ;
+	}
+
+	result , err := enrollcollection.DeleteOne(context.Background() , bson.M{"stdid": stdid , "courseid": course.ID});
+	if err != nil {
+		http.Error(w , "Error deleting enrollment" , http.StatusInternalServerError)
+		return ;
+	}
+	if result.DeletedCount == 0 {
+		http.Error(w , "Enrollment not found" , http.StatusNotFound)
+		return ;
+	}
+}
 
 
 
