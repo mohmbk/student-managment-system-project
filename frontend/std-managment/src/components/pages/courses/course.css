@@ -23,3 +23,35 @@
     border: none;
     border-radius: 20px;
 }
+
+.inpcdiv{
+    height: 30vh;
+    width: 40%;
+    background-color: red;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    margin: auto;
+}
+
+.courseinp{
+    height: 30%;
+    width: 80%;
+    border: none;
+    border-radius: 20px;
+    padding-left: 20px;
+}
+
+.coursebtn{
+    background-color: rgb(179, 255, 0);
+    width: 40%;
+    height: 20%;
+    border: none;
+    border-radius: 20px;
+}
+
+.coursebtn:hover{
+    transform: scale(1.1);
+    transition: 0.7s;
+}

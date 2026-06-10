@@ -300,7 +300,7 @@ func deleteEnrollment(w http.ResponseWriter , r *http.Request) {
 	parts := strings.Split(path, "/");
 	stdidstr := parts[0];
 	coursename := parts[1];
-	stdid , err := strconv.Atoi(idstr);
+	stdid , err := strconv.Atoi(stdidstr);
 	if err != nil {
 		http.Error(w , "Invalid student ID" , http.StatusBadRequest)
 		return ;
@@ -323,6 +323,99 @@ func deleteEnrollment(w http.ResponseWriter , r *http.Request) {
 	}
 }
 
+func createcourse(w http.ResponseWriter , r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w , "Method not allowed" , http.StatusMethodNotAllowed)
+		return ;
+	}
+	var newcourse course ;
+	err := json.NewDecoder(r.Body).Decode(&newcourse);
+	count , err := courscollection.CountDocuments(context.Background() , bson.M{"id": newcourse.ID});
+	if err != nil {
+		http.Error(w , "Error checking for existing course" , http.StatusInternalServerError)
+		return ;
+	}
+	fmt.Println("count:", count)
+	fmt.Println("id:", newcourse.ID)
+	if count != 0 {
+		http.Error(w , "Course with this ID already exists" , http.StatusBadRequest)
+		return ;
+	}
+
+	result , err := courscollection.InsertOne(context.Background() , newcourse);
+	if err != nil {
+		http.Error(w , "Error creating course" , http.StatusInternalServerError)
+		return ;
+	}
+	fmt.Printf("Inserted course with ID: %v\n" , result.InsertedID);
+}
+
+func coursesHandler(w http.ResponseWriter, r *http.Request) {
+    switch r.Method {
+    case "GET":
+        getcourse(w, r)
+    case "POST":
+        createcourse(w, r)
+    default:
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+    }
+}
+
+
+func createEnrollment(w http.ResponseWriter , r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w , "Method not allowed" , http.StatusMethodNotAllowed)
+		return ;
+	}
+	var enrollmentReq enrollmentRequest ;
+	err := json.NewDecoder(r.Body).Decode(&enrollmentReq);
+	if err != nil {
+		http.Error(w , "Invalid request body" , http.StatusBadRequest)
+		return ;
+	}
+
+	var course course ;
+	err = courscollection.FindOne(context.Background() , bson.M{"name": enrollmentReq.CourseName}).Decode(&course);
+	if err != nil {
+		http.Error(w , "Course not found" , http.StatusNotFound)
+		return ;
+	}
+
+	count , err := enrollcollection.CountDocuments(context.Background() , bson.M{"stdid": enrollmentReq.StdID , "courseid": course.ID});
+	if err != nil {
+		http.Error(w , "Error checking for existing enrollment" , http.StatusInternalServerError)
+		return ;
+	}
+
+	if count != 0 {
+		http.Error(w , "Enrollment already exists for this student and course" , http.StatusBadRequest)
+		return ;
+	}
+	var enrollment enroll ;
+	enrollment.StdID = enrollmentReq.StdID ;
+	enrollment.CourseID = course.ID ;
+
+	result , err := enrollcollection.InsertOne(context.Background() , enrollment);
+	if err != nil {
+		http.Error(w , "Error creating enrollment" , http.StatusInternalServerError)
+		return ;
+	}
+	
+	fmt.Println(result.InsertedID);
+
+}
+
+
+func enrollmentshandler(w http.ResponseWriter , r *http.Request) {
+	switch r.Method {
+	case "GET":
+		getenroll(w, r)
+	case "POST":
+		createEnrollment(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
 
 
 func main() {
@@ -376,11 +469,14 @@ func main() {
 		fmt.Println("Enrollment already exists, skipping...")
 	}
 	
-	http.HandleFunc("/enrollments", enableCORS(getenroll));
-	http.HandleFunc("/courses", enableCORS(getcourse));
+	http.HandleFunc("/enrollments", enableCORS(enrollmentshandler));
+	http.HandleFunc("/courses", enableCORS(coursesHandler))
 	http.HandleFunc("/students", enableCORS(studentsHandler));
 	http.HandleFunc("/students/", enableCORS(deleteStudent));
 	http.HandleFunc("/StudentDetail/", enableCORS(getStudentDetails));
+	http.HandleFunc("/courses/", enableCORS(deleteCourse));
+	http.HandleFunc("/enrollments/", enableCORS(deleteEnrollment));
+	
 
 	fmt.Println("Server running on http://localhost:8080");
 	 http.ListenAndServe(":8080", nil);

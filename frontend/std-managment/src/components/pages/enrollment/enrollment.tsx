@@ -22,7 +22,7 @@ function Enrollment() {
 
   async function deleteenroll(stdid : number, coursename : string) {
     try {
-      const res = await fetch(`http://localhost:8080/enroll/${stdid}/${coursename}`, {
+      const res = await fetch(`http://localhost:8080/enrollments/${stdid}/${coursename}`, {
          method: "DELETE"
     });
 
@@ -34,6 +34,50 @@ function Enrollment() {
       console.log(error);
     }
   }
+
+
+  const [stdid , setstdid] = useState("");
+  const [stdname , setstdname] = useState("");
+  const [csname , setcsname] = useState("");
+
+  const createenroll = async ( e : React.MouseEvent) => {
+    e.preventDefault() ;
+
+    try {
+
+      const response = await fetch("http://localhost:8080/enrollments" , {
+        method : "POST",
+        headers : {
+          "Content-Type" : "application/json" ,
+        }, 
+
+        body : JSON.stringify({
+          stdid : Number(stdid),
+          stdname : stdname ,
+          coursename : csname ,
+        }),
+      }) 
+
+
+      if (!response.ok){
+        alert(await response.text());
+        return ;
+      }
+
+      alert("enrollment created");
+
+      setcsname("");
+      setstdid("");
+      setstdname("");
+
+      
+      
+    } catch (error) {
+      console.log(error);
+      
+    }
+  }
+  
   return (
     <>
       <section>
@@ -47,6 +91,16 @@ function Enrollment() {
             
         ))}
       </section>
+
+        <br /><br /><br />
+
+        <form className='enrolldiv'>
+          <input type="text" placeholder='enter the student id' className='enrollinp' onChange={(e) => setstdid(e.target.value)}/>
+          <input type="text" placeholder='enter the student name' className='enrollinp' onChange={(e) => setstdname(e.target.value)}/>
+          <input type="text" placeholder='enter the course you want' className='enrollinp' onChange={(e) => setcsname(e.target.value)}/>
+          <input type="button" value="create enroll !!" className='enrollbtn' onClick={createenroll}/>
+        </form>
+      
     </>
   )
 }

@@ -35,18 +35,59 @@ function Courses() {
       console.log(error);
     }
   }
+
+
+  const [csid , setcsid] = useState("");
+  const [csname , setcsname] = useState("");
+
+  const createcourse = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:8080/courses", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+
+        body: JSON.stringify({
+          id: Number(csid),
+          name: csname,
+        }),
+      });
+
+      if (!res.ok) {
+        alert(await res.text());
+        return ;
+      }
+
+      alert("course created");
+      setcsid("");
+      setcsname("");
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
     <>
       <section>
         {courses.map((course) => (
           <div key={course.id} className="courseitem">
             
-              <h3>{course.name}</h3>
-              <h3>ID: {course.id}</h3>
+              <h3>course name : {course.name}</h3>
+              <h3>ID : {course.id}</h3>
             <button className='coursedlt' onClick={() => deleatecourse(course.id)}>delete</button>
           </div>
         ))}
       </section>
+
+        <br /><br /><br />
+        <form className='inpcdiv'>
+          <input type="text" placeholder='enter course id' className='courseinp' onChange={(e) => setcsid(e.target.value)}/>
+          <input type="text" placeholder='enter course name' className='courseinp' onChange={(e) => setcsname(e.target.value)}/>
+          <input type="button" value='create course !!' className='coursebtn' onClick={createcourse}/>
+        </form>
+      
     </>
   )
 }
